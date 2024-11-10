@@ -25,7 +25,27 @@ public class UserController {
 
         if(!result.isSuccess()){
             var httpStatus = ErrorHelper.processError(result.getError());
+        }
+    }
 
+    @PutMapping(value = "user/{id}", produces = "application/json")
+    public void updateUser(@RequestBody UserReqDto userDto, @PathVariable long id) {
+        ModelMapper mapper = new ModelMapper();
+        var user = mapper.map(userDto, User.class);
+
+        var result = userService.updateUser(id, user);
+
+        if(!result.isSuccess()){
+            var httpStatus = ErrorHelper.processError(result.getError());
+        }
+    }
+
+    @DeleteMapping(value = "user/{id}")
+    public void deleteUser(@PathVariable long id) {
+        var result = userService.deleteUser(id);
+
+        if(!result.isSuccess()){
+            var httpStatus = ErrorHelper.processError(result.getError());
         }
     }
 }
