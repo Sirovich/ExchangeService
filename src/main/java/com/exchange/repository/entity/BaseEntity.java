@@ -2,16 +2,16 @@ package com.exchange.repository.entity;
 
 import lombok.*;
 
-import java.util.Date;
+import java.time.Instant;
 
 @Setter
 @Getter
 @RequiredArgsConstructor
 public class BaseEntity {
-    Date createdAt;
-    Date updatedAt;
+    Instant createdAt;
+    Instant updatedAt;
 
-    BaseEntity(Date createdAt, Date updatedAt) {
+    BaseEntity(Instant createdAt, Instant updatedAt) {
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
     }

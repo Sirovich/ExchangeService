@@ -24,4 +24,5 @@ public class TransactionEntity extends BaseEntity {
     private BigDecimal amountFrom;
     private BigDecimal amountTo;
     private BigDecimal exchangeRate;
+    private Boolean isRefunded;
 }

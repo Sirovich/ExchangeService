@@ -9,6 +9,8 @@ import com.exchange.service.UserService;
 import com.exchange.utils.PasswordHelper;
 import org.modelmapper.ModelMapper;
 
+import java.time.Instant;
+
 public class UserServiceImpl implements UserService {
 
     private final UserRepository repository;
@@ -31,22 +33,29 @@ public class UserServiceImpl implements UserService {
 
         ModelMapper mapper = new ModelMapper();
         var entity = mapper.map(user, UserEntity.class);
+        Instant nowUtc = Instant.now();
+        entity.setCreatedAt(nowUtc);
+        entity.setUpdatedAt(nowUtc);
+
         repository.save(entity);
 
         return new Result();
     }
 
     @Override
-    public Result updateUser(User user) {
-        if(!repository.existsById(user.getId())) {
+    public Result updateUser(long id, User user) {
+        if(!repository.existsById(id)) {
             var result = new Result();
             result.setError(ErrorCode.USER_NOT_FOUND);
 
             return result;
         }
 
+        user.setId(id);
         ModelMapper mapper = new ModelMapper();
         var entity = mapper.map(user, UserEntity.class);
+        entity.setUpdatedAt(Instant.now());
+
         repository.save(entity);
 
         return new Result();
