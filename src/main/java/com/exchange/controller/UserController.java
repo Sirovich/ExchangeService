@@ -2,6 +2,7 @@ package com.exchange.controller;
 
 import com.exchange.model.User;
 import com.exchange.model.dto.UserReqDto;
+import com.exchange.model.dto.UserResDto;
 import com.exchange.service.UserService;
 import com.exchange.utils.ErrorHelper;
 import org.modelmapper.ModelMapper;
@@ -47,5 +48,10 @@ public class UserController {
         if(!result.isSuccess()){
             var httpStatus = ErrorHelper.processError(result.getError());
         }
+    }
+
+    @PostMapping(value = "login")
+    public UserResDto login(@RequestBody String email, @RequestBody String password) {
+
     }
 }

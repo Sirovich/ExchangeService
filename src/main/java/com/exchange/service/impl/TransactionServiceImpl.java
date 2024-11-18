@@ -1,29 +1,60 @@
 package com.exchange.service.impl;
 
+import com.exchange.model.ErrorCode;
 import com.exchange.model.Result;
 import com.exchange.model.Transaction;
 import com.exchange.repository.TransactionRepository;
-import com.exchange.repository.UserRepository;
+import com.exchange.repository.entity.TransactionEntity;
 import com.exchange.service.TransactionService;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
+
+import java.time.Instant;
 
 @Service
 public class TransactionServiceImpl implements TransactionService {
     private final TransactionRepository transactionRepository;
-    private final UserRepository userRepository;
+    private final ModelMapper mapper;
 
-    TransactionServiceImpl(TransactionRepository transactionRepository, UserRepository userRepository) {
+    TransactionServiceImpl(TransactionRepository transactionRepository, ModelMapper modelMapper) {
         this.transactionRepository = transactionRepository;
-        this.userRepository = userRepository;
+        this.mapper = modelMapper;
     }
 
-    public Result createTransaction(Transaction transaction) {
+    public Result<Transaction> createTransaction(Transaction transaction) {
+        if(transaction == null) {
+            var result = new Result<Transaction>();
+            result.setError(ErrorCode.BAD_REQUEST);
 
-        return new Result();
+            return result;
+        }
+
+        Instant nowUtc = Instant.now();
+        transaction.setCreatedAt(nowUtc);
+        transaction.setUpdatedAt(nowUtc);
+
+        var entity = mapper.map(transaction, TransactionEntity.class);
+
+        transactionRepository.save(entity);
+
+        var result = new Result<Transaction>();
+        result.setData(transaction);
+        return result;
     }
 
-    public Result refundTransaction(long id) {
-        return new Result();
+    public Result<Transaction> refundTransaction(long id) {
+        if(!transactionRepository.existsById(id)) {
+            var result = new Result();
+            result.setError(ErrorCode.TRANSACTION_NOT_FOUND);
+
+            return result;
+        }
+
+        var transactionEntity = transactionRepository.updateIsRefundedAndUpdatedAtById(id, true, Instant.now());
+        var transaction = mapper.map(transactionEntity, Transaction.class);
+
+        var result = new Result<Transaction>();
+        result.setData(transaction);
+        return result;
     }
 }

@@ -14,15 +14,17 @@ import java.time.Instant;
 public class UserServiceImpl implements UserService {
 
     private final UserRepository repository;
+    private final ModelMapper mapper;
 
-    UserServiceImpl(UserRepository repository) {
+    UserServiceImpl(UserRepository repository, ModelMapper mapper) {
         this.repository = repository;
+        this.mapper = mapper;
     }
 
     @Override
-    public Result createUser(User user) {
+    public Result<User> createUser(User user) {
         if (user == null) {
-            var result = new Result();
+            var result = new Result<User>();
             result.setError(ErrorCode.BAD_REQUEST);
 
             return result;
@@ -31,7 +33,6 @@ public class UserServiceImpl implements UserService {
         var hashedPassword = PasswordHelper.hashPassword(user.getPassword());
         user.setPassword(hashedPassword);
 
-        ModelMapper mapper = new ModelMapper();
         var entity = mapper.map(user, UserEntity.class);
         Instant nowUtc = Instant.now();
         entity.setCreatedAt(nowUtc);
@@ -39,38 +40,72 @@ public class UserServiceImpl implements UserService {
 
         repository.save(entity);
 
-        return new Result();
+        var result = new Result<User>();
+        result.setData(user);
+
+        return result;
     }
 
     @Override
-    public Result updateUser(long id, User user) {
+    public Result<User> updateUser(long id, User user) {
         if(!repository.existsById(id)) {
-            var result = new Result();
+            var result = new Result<User>();
             result.setError(ErrorCode.USER_NOT_FOUND);
 
             return result;
         }
 
         user.setId(id);
-        ModelMapper mapper = new ModelMapper();
         var entity = mapper.map(user, UserEntity.class);
         entity.setUpdatedAt(Instant.now());
 
         repository.save(entity);
 
-        return new Result();
+        var result = new Result<User>();
+        result.setData(user);
+
+        return result;
     }
 
     @Override
-    public Result deleteUser(long id) {
+    public Result<Boolean> deleteUser(long id) {
         if(!repository.existsById(id)) {
-            var result = new Result();
+            var result = new Result<Boolean>();
             result.setError(ErrorCode.USER_NOT_FOUND);
 
             return result;
         }
 
         repository.deleteById(id);
-        return new Result();
+
+        var result = new Result<Boolean>();
+        result.setData(true);
+        return result;
+    }
+
+    @Override
+    public Result<User> login(String email, String password) {
+        var userEntity = repository.findByEmail(email);
+
+        if(userEntity == null) {
+            var result = new Result<User>();
+            result.setError(ErrorCode.USER_NOT_FOUND);
+
+            return result;
+        }
+
+        var hashedPassword = PasswordHelper.hashPassword(password);
+        if(!hashedPassword.equals(userEntity.getPassword())) {
+            var result = new Result<User>();
+            result.setError(ErrorCode.INVALID_PASSWORD);
+
+            return result;
+        }
+
+        var user = mapper.map(userEntity, User.class);
+
+        var result = new Result<User>();
+        result.setData(user);
+        return result;
     }
 }

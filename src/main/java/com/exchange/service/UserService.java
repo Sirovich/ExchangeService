@@ -4,7 +4,8 @@ import com.exchange.model.Result;
 import com.exchange.model.User;
 
 public interface UserService {
-    Result createUser(User user);
-    Result updateUser(long id, User user);
-    Result deleteUser(long id);
+    Result<User> createUser(User user);
+    Result<User> updateUser(long id, User user);
+    Result<Boolean> deleteUser(long id);
+    Result<User> login(String email, String password);
 }
