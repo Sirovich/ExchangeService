@@ -5,15 +5,14 @@ import org.springframework.http.HttpStatus;
 
 public class ErrorHelper {
     public static HttpStatus processError(ErrorCode error) {
-        switch (error){
-            case ErrorCode.BAD_REQUEST -> {
-                return HttpStatus.BAD_REQUEST;
-            }
-            case ErrorCode.USER_NOT_FOUND -> {
-                return HttpStatus.NOT_FOUND;
-            }
-        }
+        return switch (error) {
+            case BAD_REQUEST -> HttpStatus.BAD_REQUEST;
 
-        return HttpStatus.INTERNAL_SERVER_ERROR;
+            case WRONG_CREDENTIALS,
+                 TRANSACTION_NOT_FOUND,
+                 USER_NOT_FOUND -> HttpStatus.NOT_FOUND;
+
+            default -> HttpStatus.INTERNAL_SERVER_ERROR;
+        };
     }
 }

@@ -42,19 +42,17 @@ public class TransactionServiceImpl implements TransactionService {
         return result;
     }
 
-    public Result<Transaction> refundTransaction(long id) {
+    public Result<Void> refundTransaction(long id) {
         if(!transactionRepository.existsById(id)) {
-            var result = new Result();
+            var result = new Result<Void>();
             result.setError(ErrorCode.TRANSACTION_NOT_FOUND);
 
             return result;
         }
 
-        var transactionEntity = transactionRepository.updateIsRefundedAndUpdatedAtById(id, true, Instant.now());
-        var transaction = mapper.map(transactionEntity, Transaction.class);
+        var updatedAt = Instant.now();
+        transactionRepository.updateIsRefundedAndUpdatedAtById(id, true, updatedAt);
 
-        var result = new Result<Transaction>();
-        result.setData(transaction);
-        return result;
+        return new Result<Void>();
     }
 }

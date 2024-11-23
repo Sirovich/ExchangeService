@@ -6,19 +6,20 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.Currency;
 
 @Entity
 @Setter
 @Getter
 @AllArgsConstructor
+@NoArgsConstructor
 public class ExchangeRate extends BaseEntity{
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
+
     private Currency baseCurrency;
     private Currency targetCurrency;
     private BigDecimal rate;

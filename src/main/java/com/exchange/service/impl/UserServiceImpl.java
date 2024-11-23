@@ -8,9 +8,12 @@ import com.exchange.repository.entity.UserEntity;
 import com.exchange.service.UserService;
 import com.exchange.utils.PasswordHelper;
 import org.modelmapper.ModelMapper;
+import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.util.ArrayList;
 
+@Service
 public class UserServiceImpl implements UserService {
 
     private final UserRepository repository;
@@ -38,7 +41,8 @@ public class UserServiceImpl implements UserService {
         entity.setCreatedAt(nowUtc);
         entity.setUpdatedAt(nowUtc);
 
-        repository.save(entity);
+        entity = repository.save(entity);
+        user = mapper.map(entity, User.class);
 
         var result = new Result<User>();
         result.setData(user);
@@ -89,7 +93,7 @@ public class UserServiceImpl implements UserService {
 
         if(userEntity == null) {
             var result = new Result<User>();
-            result.setError(ErrorCode.USER_NOT_FOUND);
+            result.setError(ErrorCode.WRONG_CREDENTIALS);
 
             return result;
         }
@@ -97,7 +101,7 @@ public class UserServiceImpl implements UserService {
         var hashedPassword = PasswordHelper.hashPassword(password);
         if(!hashedPassword.equals(userEntity.getPassword())) {
             var result = new Result<User>();
-            result.setError(ErrorCode.INVALID_PASSWORD);
+            result.setError(ErrorCode.WRONG_CREDENTIALS);
 
             return result;
         }
