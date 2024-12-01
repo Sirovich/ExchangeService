@@ -13,6 +13,5 @@ import lombok.Setter;
 public class UserResDto {
     long id;
     String email;
-    String password;
     UserType type;
 }

@@ -1,9 +1,6 @@
 package com.exchange.repository.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -18,7 +15,9 @@ import java.util.Currency;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
+@Table(name = "transaction")
 public class TransactionEntity extends BaseEntity {
+    private long userId;
     private Currency currencyFrom;
     private Currency currencyTo;
     private BigDecimal amountFrom;

@@ -1,6 +1,8 @@
 package com.exchange.controller;
 
 import com.exchange.model.User;
+import com.exchange.model.dto.LoginDto;
+import com.exchange.model.dto.LoginResDto;
 import com.exchange.utils.JwtHelper;
 import com.exchange.model.dto.UserReqDto;
 import com.exchange.model.dto.UserResDto;
@@ -23,6 +25,19 @@ public class UserController {
         this.userService = userService;
         this.mapper = mapper;
         this.jwtHelper = jwtHelper;
+    }
+
+    @GetMapping(value = "user/{id}", produces = "application/json")
+    public ResponseEntity<UserResDto> getUser(@PathVariable long id) {
+        var result = userService.getUser(id);
+
+        if(!result.isSuccess()){
+            var httpStatus = ErrorHelper.processError(result.getError());
+            return new ResponseEntity<UserResDto>((UserResDto)null, httpStatus);
+        }
+
+        var userResDto = mapper.map(result.getData(), UserResDto.class);
+        return new ResponseEntity<UserResDto>(userResDto, HttpStatus.OK);
     }
 
     @PostMapping(value = "user", produces = "application/json")
@@ -68,15 +83,18 @@ public class UserController {
     }
 
     @PostMapping(value = "login")
-    public ResponseEntity<String> login(@RequestBody String email, @RequestBody String password) {
-        var userResult = userService.login(email, password);
+    public ResponseEntity<LoginResDto> login(@RequestBody LoginDto loginDto) {
+        var userResult = userService.login(loginDto.getEmail(), loginDto.getPassword());
 
         if(!userResult.isSuccess()){
             var httpStatus = ErrorHelper.processError(userResult.getError());
-            return new ResponseEntity<String>("", httpStatus);
+            return new ResponseEntity<LoginResDto>((LoginResDto)null, httpStatus);
         }
 
         var jwt = jwtHelper.generateToken(userResult.getData());
-        return new ResponseEntity<String>(jwt, HttpStatus.OK);
+        var loginResult = this.mapper.map(userResult.getData(), LoginResDto.class);
+        loginResult.setToken(jwt);
+
+        return new ResponseEntity<LoginResDto>(loginResult, HttpStatus.OK);
     }
 }

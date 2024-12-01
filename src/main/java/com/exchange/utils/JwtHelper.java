@@ -30,4 +30,9 @@ public class JwtHelper {
             return false;
         }
     }
+
+    public String getSubject(String token) {
+        Claims claims = Jwts.parser().setSigningKey(secret).parseClaimsJws(token).getBody();
+        return claims.getSubject();
+    }
 }

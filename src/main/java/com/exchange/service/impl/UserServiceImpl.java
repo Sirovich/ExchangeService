@@ -3,24 +3,29 @@ package com.exchange.service.impl;
 import com.exchange.model.ErrorCode;
 import com.exchange.model.Result;
 import com.exchange.model.User;
+import com.exchange.repository.AccountRepository;
 import com.exchange.repository.UserRepository;
+import com.exchange.repository.entity.AccountEntity;
 import com.exchange.repository.entity.UserEntity;
 import com.exchange.service.UserService;
 import com.exchange.utils.PasswordHelper;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.time.Instant;
-import java.util.ArrayList;
+import java.util.Currency;
 
 @Service
 public class UserServiceImpl implements UserService {
 
-    private final UserRepository repository;
+    private final UserRepository userRepository;
+    private final AccountRepository accountRepository;
     private final ModelMapper mapper;
 
-    UserServiceImpl(UserRepository repository, ModelMapper mapper) {
-        this.repository = repository;
+    UserServiceImpl(UserRepository repository, AccountRepository accountRepository, ModelMapper mapper) {
+        this.userRepository = repository;
+        this.accountRepository = accountRepository;
         this.mapper = mapper;
     }
 
@@ -33,6 +38,13 @@ public class UserServiceImpl implements UserService {
             return result;
         }
 
+        if(userRepository.existsByEmail(user.getEmail())) {
+            var result = new Result<User>();
+            result.setError(ErrorCode.EMAIL_ALREADY_EXISTS);
+
+            return result;
+        }
+
         var hashedPassword = PasswordHelper.hashPassword(user.getPassword());
         user.setPassword(hashedPassword);
 
@@ -40,9 +52,16 @@ public class UserServiceImpl implements UserService {
         Instant nowUtc = Instant.now();
         entity.setCreatedAt(nowUtc);
         entity.setUpdatedAt(nowUtc);
-
-        entity = repository.save(entity);
+        entity = userRepository.save(entity);
         user = mapper.map(entity, User.class);
+
+        var accountEntity = new AccountEntity();
+        accountEntity.setUserId(user.getId());
+        accountEntity.setBalance(new BigDecimal(100));
+        accountEntity.setCurrency(Currency.getInstance("BYN"));
+        accountEntity.setCreatedAt(nowUtc);
+        accountEntity.setUpdatedAt(nowUtc);
+        accountRepository.save(accountEntity);
 
         var result = new Result<User>();
         result.setData(user);
@@ -52,7 +71,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public Result<User> updateUser(long id, User user) {
-        if(!repository.existsById(id)) {
+        if(!userRepository.existsById(id)) {
             var result = new Result<User>();
             result.setError(ErrorCode.USER_NOT_FOUND);
 
@@ -63,7 +82,7 @@ public class UserServiceImpl implements UserService {
         var entity = mapper.map(user, UserEntity.class);
         entity.setUpdatedAt(Instant.now());
 
-        repository.save(entity);
+        userRepository.save(entity);
 
         var result = new Result<User>();
         result.setData(user);
@@ -73,14 +92,14 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public Result<Boolean> deleteUser(long id) {
-        if(!repository.existsById(id)) {
+        if(!userRepository.existsById(id)) {
             var result = new Result<Boolean>();
             result.setError(ErrorCode.USER_NOT_FOUND);
 
             return result;
         }
 
-        repository.deleteById(id);
+        userRepository.deleteById(id);
 
         var result = new Result<Boolean>();
         result.setData(true);
@@ -89,7 +108,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public Result<User> login(String email, String password) {
-        var userEntity = repository.findByEmail(email);
+        var userEntity = userRepository.findByEmail(email);
 
         if(userEntity == null) {
             var result = new Result<User>();
@@ -98,8 +117,7 @@ public class UserServiceImpl implements UserService {
             return result;
         }
 
-        var hashedPassword = PasswordHelper.hashPassword(password);
-        if(!hashedPassword.equals(userEntity.getPassword())) {
+        if(!PasswordHelper.checkPassword(password, userEntity.getPassword())) {
             var result = new Result<User>();
             result.setError(ErrorCode.WRONG_CREDENTIALS);
 
@@ -107,6 +125,24 @@ public class UserServiceImpl implements UserService {
         }
 
         var user = mapper.map(userEntity, User.class);
+
+        var result = new Result<User>();
+        result.setData(user);
+        return result;
+    }
+
+    @Override
+    public Result<User> getUser(long id) {
+        var entity = userRepository.findById(id);
+
+        if(entity.isEmpty()) {
+            var result = new Result<User>();
+            result.setError(ErrorCode.USER_NOT_FOUND);
+
+            return result;
+        }
+
+        var user = mapper.map(entity.get(), User.class);
 
         var result = new Result<User>();
         result.setData(user);
