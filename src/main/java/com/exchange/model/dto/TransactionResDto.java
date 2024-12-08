@@ -23,4 +23,5 @@ public class TransactionResDto {
     private Boolean isRefunded;
     private Instant createdAt;
     private Instant updatedAt;
+    private String checkNumber;
 }

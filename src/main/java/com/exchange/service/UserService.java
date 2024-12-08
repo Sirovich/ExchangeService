@@ -8,5 +8,5 @@ public interface UserService {
     Result<User> updateUser(long id, User user);
     Result<Boolean> deleteUser(long id);
     Result<User> login(String email, String password);
-    Result<User> getUser(long id);
+    Result<User> getUser(String email);
 }

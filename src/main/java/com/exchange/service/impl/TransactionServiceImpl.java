@@ -7,12 +7,16 @@ import com.exchange.repository.AccountRepository;
 import com.exchange.repository.ExchangeRateRepository;
 import com.exchange.repository.TransactionRepository;
 import com.exchange.repository.UserRepository;
+import com.exchange.repository.entity.AccountEntity;
 import com.exchange.repository.entity.TransactionEntity;
 import com.exchange.service.TransactionService;
+import com.exchange.utils.ReceiptHelper;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.Currency;
 import java.util.List;
 
 @Service
@@ -39,21 +43,30 @@ public class TransactionServiceImpl implements TransactionService {
             return result;
         }
 
-        var exchangeRate = exchangeRateRepository.findByBaseCurrencyAndTargetCurrency(transaction.getCurrencyFrom(), transaction.getCurrencyTo());
-
         Instant nowUtc = Instant.now();
+        transaction.setCheckNumber(ReceiptHelper.generateRandomCheckNumber());
         transaction.setCreatedAt(nowUtc);
         transaction.setUpdatedAt(nowUtc);
         transaction.setIsRefunded(false);
-        transaction.setExchangeRate(exchangeRate.getRate());
-        transaction.setAmountTo(transaction.getAmountFrom().multiply(exchangeRate.getRate()));
 
         var entity = mapper.map(transaction, TransactionEntity.class);
         var accountFrom = accountRepository.findByUserIdAndCurrency(transaction.getUserId(), transaction.getCurrencyFrom());
         var accountTo = accountRepository.findByUserIdAndCurrency(transaction.getUserId(), transaction.getCurrencyTo());
 
         accountFrom.setBalance(accountFrom.getBalance().subtract(transaction.getAmountFrom()));
-        accountTo.setBalance(accountTo.getBalance().add(transaction.getAmountTo()));
+
+        if(accountTo == null) {
+            accountTo = new AccountEntity();
+            accountTo.setUserId(transaction.getUserId());
+            accountTo.setBalance(transaction.getAmountTo());
+            accountTo.setCurrency(transaction.getCurrencyTo());
+            accountTo.setCreatedAt(nowUtc);
+            accountTo.setUpdatedAt(nowUtc);
+            accountRepository.save(accountTo);
+        }
+        else {
+            accountTo.setBalance(accountTo.getBalance().add(transaction.getAmountTo()));
+        }
 
         transactionRepository.save(entity);
         accountRepository.save(accountFrom);
@@ -68,6 +81,7 @@ public class TransactionServiceImpl implements TransactionService {
     public Result<List<Transaction>> getTransactions(String email) {
         var user = userRepository.findByEmail(email);
         var transactionEntities = transactionRepository.findAllByUserId(user.getId());
+        transactionEntities.sort((a, b) -> b.getCreatedAt().compareTo(a.getCreatedAt()));
 
         var transactions = transactionEntities.stream()
                 .map(entity -> mapper.map(entity, Transaction.class))

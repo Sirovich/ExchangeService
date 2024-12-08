@@ -132,17 +132,17 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Result<User> getUser(long id) {
-        var entity = userRepository.findById(id);
+    public Result<User> getUser(String email) {
+        var entity = userRepository.findByEmail(email);
 
-        if(entity.isEmpty()) {
+        if(entity == null) {
             var result = new Result<User>();
             result.setError(ErrorCode.USER_NOT_FOUND);
 
             return result;
         }
 
-        var user = mapper.map(entity.get(), User.class);
+        var user = mapper.map(entity, User.class);
 
         var result = new Result<User>();
         result.setData(user);

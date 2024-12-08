@@ -9,8 +9,10 @@ import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
 import java.util.Currency;
+import java.util.List;
 
 @Repository
 public interface AccountRepository extends JpaRepository<AccountEntity, Long> {
     AccountEntity findByUserIdAndCurrency(long userId, Currency currency);
+    List<AccountEntity> findByUserId(long userId);
 }

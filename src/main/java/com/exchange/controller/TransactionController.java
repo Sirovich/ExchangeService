@@ -30,10 +30,9 @@ public class TransactionController {
     }
 
     @GetMapping("list")
+    @CrossOrigin(origins = "http://localhost:3000")
     public ResponseEntity<List<TransactionResDto>> getTransactions(HttpServletRequest request) {
-        var token = extractJwtFromRequest(request);
-        var userEmail = jwtHelper.getSubject(token);
-
+        var userEmail = jwtHelper.getUserEmailFromRequest(request);
         var result = transactionService.getTransactions(userEmail);
 
         if(!result.isSuccess()) {
@@ -72,13 +71,5 @@ public class TransactionController {
         }
 
         return new ResponseEntity<Void>(HttpStatus.OK);
-    }
-
-    private String extractJwtFromRequest(HttpServletRequest request) {
-        String bearerToken = request.getHeader("Authorization");
-        if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
-            return bearerToken.substring(7);
-        }
-        return null;
     }
 }

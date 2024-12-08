@@ -17,4 +17,6 @@ public class TransactionReqDto {
     private Currency currencyFrom;
     private Currency currencyTo;
     private BigDecimal amountFrom;
+    private BigDecimal amountTo;
+    private BigDecimal exchangeRate;
 }

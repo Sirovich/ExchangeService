@@ -23,5 +23,6 @@ public class Transaction {
     private BigDecimal exchangeRate;
     private Boolean isRefunded;
     private Instant createdAt;
+    private String checkNumber;
     private Instant updatedAt;
 }

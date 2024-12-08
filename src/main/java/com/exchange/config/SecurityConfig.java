@@ -25,10 +25,11 @@ public class SecurityConfig {
     public CorsFilter corsFilter() {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowCredentials(true);
-        config.addAllowedOriginPattern("http://localhost"); // specify allowed origins
+        config.setAllowCredentials(false);
+        config.addAllowedOriginPattern("*"); // specify allowed origins
         config.addAllowedHeader("*");
         config.addAllowedMethod("*");
+        config.setAllowedOrigins(java.util.List.of("http://localhost:3000"));
         source.registerCorsConfiguration("/**", config);
         return new CorsFilter(source);
     }
@@ -37,8 +38,9 @@ public class SecurityConfig {
     public UrlBasedCorsConfigurationSource corsConfigurationSource() {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowCredentials(true);
-        config.addAllowedOriginPattern("http://localhost"); // specify allowed origins
+        config.setAllowCredentials(false);
+        config.addAllowedOriginPattern("*"); // specify allowed origins
+        config.setAllowedOrigins(java.util.List.of("http://localhost:3000"));
         config.addAllowedHeader("*");
         config.addAllowedMethod("*");
         source.registerCorsConfiguration("/**", config);

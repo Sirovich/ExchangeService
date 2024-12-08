@@ -5,13 +5,13 @@ import { UserContext } from '../../context/UserContext';
 import { useAtom } from 'jotai';
 import { User, userAtom } from '../../models/User';
 
-export const Login: FC = () => {
+export const Registration: FC = () => {
   const [user, setUser] = useAtom(userAtom);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState(false);
 
-  const submitLogin = async (e: React.FormEvent) => {
+  const submitRegistration = async (e: React.FormEvent) => {
     e.preventDefault();
     let userResponse = await userService.login(email, password);
     if (userResponse) {
@@ -35,7 +35,7 @@ export const Login: FC = () => {
     <div className="flex flex-row items-center justify-center max-h-screen py-64">
       <div className="w-full max-w-md p-8 space-y-6 bg-white rounded-lg shadow border-2 border-slate-300 mr-32">
         <h1 className="text-2xl font-bold text-center mb-6">Login</h1>
-        <form onSubmit={submitLogin}>
+        <form onSubmit={submitRegistration}>
           <div className='mb-2'>
             <label className="block text-sm font-medium text-gray-700">Email:</label>
             <input
@@ -71,7 +71,7 @@ export const Login: FC = () => {
       </div>
       <div className="w-full max-w-md p-8 space-y-6 bg-white rounded-lg shadow border-2 border-slate-300">
         <h1 className="text-2xl font-bold text-center mb-6">Login</h1>
-        <form onSubmit={submitLogin}>
+        <form onSubmit={submitRegistration}>
           <div className='mb-2'>
             <label className="block text-sm font-medium text-gray-700">Email:</label>
             <input

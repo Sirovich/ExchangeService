@@ -8,13 +8,16 @@ import com.exchange.model.dto.UserReqDto;
 import com.exchange.model.dto.UserResDto;
 import com.exchange.service.UserService;
 import com.exchange.utils.ErrorHelper;
+import jakarta.servlet.http.HttpServletRequest;
 import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RequestMapping("api/users")
 @RestController
+@CrossOrigin(origins = "http://localhost:3000")
 public class UserController {
 
     private final UserService userService;
@@ -27,9 +30,11 @@ public class UserController {
         this.jwtHelper = jwtHelper;
     }
 
-    @GetMapping(value = "user/{id}", produces = "application/json")
-    public ResponseEntity<UserResDto> getUser(@PathVariable long id) {
-        var result = userService.getUser(id);
+    @GetMapping(value = "user", produces = "application/json")
+    @CrossOrigin(origins = "http://localhost:3000")
+    public ResponseEntity<UserResDto> getUser(HttpServletRequest request) {
+        var userEmail = jwtHelper.getUserEmailFromRequest(request);
+        var result = userService.getUser(userEmail);
 
         if(!result.isSuccess()){
             var httpStatus = ErrorHelper.processError(result.getError());
@@ -41,6 +46,7 @@ public class UserController {
     }
 
     @PostMapping(value = "user", produces = "application/json")
+    @CrossOrigin(origins = "http://localhost:3000")
     public ResponseEntity<String> createUser(@RequestBody UserReqDto userDto) {
         var user = mapper.map(userDto, User.class);
 
@@ -56,6 +62,7 @@ public class UserController {
     }
 
     @PutMapping(value = "user/{id}", produces = "application/json")
+    @CrossOrigin(origins = "http://localhost:3000")
     public ResponseEntity<UserResDto> updateUser(@RequestBody UserReqDto userDto, @PathVariable long id) {
         var user = mapper.map(userDto, User.class);
 
@@ -71,6 +78,7 @@ public class UserController {
     }
 
     @DeleteMapping(value = "user/{id}")
+    @CrossOrigin(origins = "http://localhost:3000")
     public ResponseEntity<Void> deleteUser(@PathVariable long id) {
         var result = userService.deleteUser(id);
 
@@ -82,8 +90,9 @@ public class UserController {
         return ResponseEntity.ok().build();
     }
 
-    @PostMapping(value = "login")
-    public ResponseEntity<LoginResDto> login(@RequestBody LoginDto loginDto) {
+    @PostMapping(value = "login", consumes = {MediaType.APPLICATION_FORM_URLENCODED_VALUE})
+    @CrossOrigin(origins = "http://localhost:3000")
+    public ResponseEntity<LoginResDto> login(LoginDto loginDto) {
         var userResult = userService.login(loginDto.getEmail(), loginDto.getPassword());
 
         if(!userResult.isSuccess()){

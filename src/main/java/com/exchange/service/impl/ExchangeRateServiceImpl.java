@@ -2,6 +2,7 @@ package com.exchange.service.impl;
 
 import com.exchange.model.ErrorCode;
 import com.exchange.model.ExchangeRate;
+import com.exchange.model.Rate;
 import com.exchange.model.Result;
 import com.exchange.repository.ExchangeRateRepository;
 import com.exchange.repository.entity.ExchangeRateEntity;
@@ -10,6 +11,10 @@ import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Currency;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class ExchangeRateServiceImpl implements ExchangeRateService {
@@ -37,5 +42,34 @@ public class ExchangeRateServiceImpl implements ExchangeRateService {
 
         exchangeRateRepository.save(entity);
         return new Result<Void>();
+    }
+
+    @Override
+    public Result<List<Rate>> getRatesByBaseCurrencies(List<Currency> baseCurrencies) {
+        if (baseCurrencies == null) {
+            var result = new Result<List<Rate>>();
+            result.setError(ErrorCode.BAD_REQUEST);
+
+            return result;
+        }
+
+        var entities = exchangeRateRepository.findByBaseCurrencies(baseCurrencies);
+        var exchangeRates = entities.stream()
+                .map(entity -> mapper.map(entity, ExchangeRate.class))
+                .toList();
+
+        var rateList = new ArrayList<Rate>();
+        exchangeRates.stream().collect(Collectors.groupingBy(ExchangeRate::getBaseCurrency))
+                .forEach((baseCurrency, rates) -> {
+                    var rate = new Rate();
+                    rate.setBaseCurrency(baseCurrency);
+                    rate.setRates(rates.stream().collect(Collectors.toMap(ExchangeRate::getTargetCurrency, ExchangeRate::getRate)));
+                    rateList.add(rate);
+                });
+
+        var result = new Result<List<Rate>>();
+        result.setData(rateList);
+
+        return result;
     }
 }
