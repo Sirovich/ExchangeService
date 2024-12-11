@@ -12,6 +12,8 @@ import { accountService } from './services/accountService';
 import { Header } from './components/header';
 import { TransactionForm } from './components/transaction/transactionForm';
 import { AccountForm } from './components/account/accountForm';
+import { TransactionReceipt } from './components/transaction/transactionReceipt';
+import { ExchangeTable } from './components/exchange/exchangeTable';
 
 function App() {
   const [, setUser] = useAtom(userAtom);
@@ -46,6 +48,8 @@ function App() {
             <Route path="/create-account" Component={AccountForm} />
             <Route path="/login" Component={Login} />
             <Route path="/user" Component={User} />
+            <Route path="/receipt/:id" element={<TransactionReceipt />} />
+            <Route path="/rates" element={<ExchangeTable />} />
           </Routes>
         </div>
       </div>

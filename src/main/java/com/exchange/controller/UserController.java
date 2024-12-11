@@ -1,11 +1,8 @@
 package com.exchange.controller;
 
 import com.exchange.model.User;
-import com.exchange.model.dto.LoginDto;
-import com.exchange.model.dto.LoginResDto;
+import com.exchange.model.dto.*;
 import com.exchange.utils.JwtHelper;
-import com.exchange.model.dto.UserReqDto;
-import com.exchange.model.dto.UserResDto;
 import com.exchange.service.UserService;
 import com.exchange.utils.ErrorHelper;
 import jakarta.servlet.http.HttpServletRequest;
@@ -94,6 +91,24 @@ public class UserController {
     @CrossOrigin(origins = "http://localhost:3000")
     public ResponseEntity<LoginResDto> login(LoginDto loginDto) {
         var userResult = userService.login(loginDto.getEmail(), loginDto.getPassword());
+
+        if(!userResult.isSuccess()){
+            var httpStatus = ErrorHelper.processError(userResult.getError());
+            return new ResponseEntity<LoginResDto>((LoginResDto)null, httpStatus);
+        }
+
+        var jwt = jwtHelper.generateToken(userResult.getData());
+        var loginResult = this.mapper.map(userResult.getData(), LoginResDto.class);
+        loginResult.setToken(jwt);
+
+        return new ResponseEntity<LoginResDto>(loginResult, HttpStatus.OK);
+    }
+
+    @PostMapping(value = "register", consumes = {MediaType.APPLICATION_FORM_URLENCODED_VALUE})
+    @CrossOrigin(origins = "http://localhost:3000")
+    public ResponseEntity<LoginResDto> register(RegisterDto registerDto) {
+        var user = this.mapper.map(registerDto, User.class);
+        var userResult = userService.createUser(user);
 
         if(!userResult.isSuccess()){
             var httpStatus = ErrorHelper.processError(userResult.getError());

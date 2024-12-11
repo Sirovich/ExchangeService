@@ -3,6 +3,7 @@ package com.exchange.service.impl;
 import com.exchange.model.ErrorCode;
 import com.exchange.model.Result;
 import com.exchange.model.User;
+import com.exchange.model.UserType;
 import com.exchange.repository.AccountRepository;
 import com.exchange.repository.UserRepository;
 import com.exchange.repository.entity.AccountEntity;

@@ -66,4 +66,16 @@ public class AccountController {
 
         return new ResponseEntity<List<Currency>>(result.getData(), HttpStatus.OK);
     }
+
+    @PostMapping("account/{id}")
+    public ResponseEntity<Account> updateAccount(@RequestBody Account accountDto, @PathVariable long id) {
+        var result = accountService.updateAccount(accountDto);
+
+        if (!result.isSuccess()) {
+            var httpStatus = ErrorHelper.processError(result.getError());
+            return new ResponseEntity<Account>(httpStatus);
+        }
+
+        return new ResponseEntity<Account>(result.getData(), HttpStatus.OK);
+    }
 }

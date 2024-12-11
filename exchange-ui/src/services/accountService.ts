@@ -33,5 +33,19 @@ export const accountService = {
             },
             body: JSON.stringify(account),
         });
+    },
+
+    addFunds: async (account: Account): Promise<Account> => {
+        let token = localStorage.getItem('token');
+        let result = await fetch(`http://localhost:8080/api/accounts/account/${account.id}`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(account),
+        });
+
+        return result.json() as Promise<Account>;
     }
 }

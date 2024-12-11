@@ -48,17 +48,17 @@ public class TransactionController {
     }
 
     @PostMapping("transaction")
-    public ResponseEntity<Void> createTransaction(@RequestBody TransactionReqDto transactionDto) {
+    public ResponseEntity<Transaction> createTransaction(@RequestBody TransactionReqDto transactionDto) {
         var transaction = mapper.map(transactionDto, Transaction.class);
 
         var result = transactionService.createTransaction(transaction);
 
         if(!result.isSuccess()) {
             var httpStatus = ErrorHelper.processError(result.getError());
-            return new ResponseEntity<Void>(httpStatus);
+            return new ResponseEntity<Transaction>(httpStatus);
         }
 
-        return new ResponseEntity<Void>(HttpStatus.OK);
+        return new ResponseEntity<Transaction>(result.getData(), HttpStatus.OK);
     }
 
     @DeleteMapping("transaction/{id}")
@@ -71,5 +71,17 @@ public class TransactionController {
         }
 
         return new ResponseEntity<Void>(HttpStatus.OK);
+    }
+
+    @GetMapping("transaction/{id}")
+    public ResponseEntity<Transaction> getTransaction(@PathVariable long id) {
+        var result = transactionService.getTransaction(id);
+
+        if(!result.isSuccess()) {
+            var httpStatus = ErrorHelper.processError(result.getError());
+            return new ResponseEntity<Transaction>(httpStatus);
+        }
+
+        return new ResponseEntity<Transaction>(result.getData(), HttpStatus.OK);
     }
 }

@@ -1,5 +1,8 @@
+import { atom } from "jotai";
+
 export type Transaction = {
     id: number;
+    userId: number;
     currencyFrom: string;
     currencyTo: string;
     amountFrom: number;
@@ -10,3 +13,5 @@ export type Transaction = {
     updatedAt: Date;
     checkNumber: string;
 }
+
+export const transactionAtom = atom<Transaction | undefined>(undefined);

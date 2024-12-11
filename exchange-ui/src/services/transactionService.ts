@@ -13,19 +13,29 @@ export const transactionService = {
         return response.json() as Promise<Transaction[]>;
     },
 
-    createTransaction(transaction: TransactionReq): Promise<void> {
+    createTransaction: async (transaction: TransactionReq): Promise<Transaction> => {
         let token = localStorage.getItem('token');
-        return fetch('http://localhost:8080/api/transactions/transaction', {
+        let result = await fetch('http://localhost:8080/api/transactions/transaction', {
             body: JSON.stringify(transaction),
             headers: {
                 'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json'
             },
             method: 'POST'
-        }).then((response) => {
-            if (!response.ok) {
-                throw new Error('Error creating transaction');
+        
+        });
+
+        return result.json() as Promise<Transaction>;
+    },
+
+    getTransaction: async (id: string): Promise<Transaction> => {
+        let token = localStorage.getItem('token');
+        let response = await fetch(`http://localhost:8080/api/transactions/transaction/${id}`, {
+            headers: {
+                'Authorization': `Bearer ${token}`
             }
         });
+
+        return response.json() as Promise<Transaction>;
     }
 }

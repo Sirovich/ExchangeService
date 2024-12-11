@@ -8,6 +8,7 @@ import { useAtom } from "jotai";
 import { TransactionReq } from "../../models/TransactionReq";
 import { transactionService } from "../../services/transactionService";
 import { userAtom } from "../../models/User";
+import { transactionAtom } from "../../models/Transaction";
 
 export const TransactionForm: FC = () => {
     const [amountFrom, setAmountFrom] = useState(0);
@@ -16,13 +17,15 @@ export const TransactionForm: FC = () => {
     const [fromCurrency, setFromCurrency] = useState('');
     const [toCurrency, setToCurrency] = useState('');
     const [exchangeRate, setExchangeRate] = useState(0);
+    const [account, setAccount] = useState<Account>();
     const [accounts] = useAtom(currentAccountAtom);
     const [rates] = useAtom<Rate[]>(ratesAtom);
     const [user] = useAtom(userAtom);
+    const [, setTransaction] = useAtom(transactionAtom);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        
+
         let transaction: TransactionReq = {
             amountFrom: amountFrom,
             amountTo: amountTo,
@@ -31,13 +34,18 @@ export const TransactionForm: FC = () => {
             exchangeRate: exchangeRate,
             userId: user.id,
         };
-        
-        transactionService.createTransaction(transaction);
+
+        transactionService.createTransaction(transaction).then((result) => {
+            setTransaction(result);
+            window.location.href = '/receipt/' + result.id;
+        });
     };
 
     useEffect(() => {
         if (accounts.length > 0) {
-            let firstAccountCurrency = accounts[0].currency;
+            const account = accounts[0];
+            setAccount(account);
+            const firstAccountCurrency = account.currency;
             setFromCurrency(firstAccountCurrency);
             let rateObj = rates.find(x => x.baseCurrency === firstAccountCurrency)!;
             const firstCurrency = rateObj.rates.keys().next().value!;
@@ -51,20 +59,42 @@ export const TransactionForm: FC = () => {
 
 
     const handleAmountFromChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.value[0] === '0' && e.target.value.length > 1) {
+            e.target.value = e.target.value.slice(1);
+        }
+
+        if ((e.nativeEvent as InputEvent).inputType === 'deleteContentBackward' && e.target.value === '') {
+            setAmountTo(0);
+            setAmountFrom(0);
+        }
+
         const value = parseFloat(e.target.value);
         if (validateNonNegative(value)) {
-            setAmountFrom(value);
-            let newAmount = (value * currentRate).toFixed(2);
-            setAmountTo(parseFloat(newAmount));
+            let newAmount = value * currentRate;
+            if (checkFunds(value)) {
+                setAmountFrom(value);
+                setAmountTo(parseFloat(newAmount.toFixed(2)));
+            }
         }
     };
 
     const handleAmountToChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.value[0] === '0' && e.target.value.length > 1) {
+            e.target.value = e.target.value.slice(1);
+        }
+
+        if ((e.nativeEvent as InputEvent).inputType === 'deleteContentBackward' && e.target.value === '') {
+            setAmountTo(0);
+            setAmountFrom(0);
+        }
+
         const value = parseFloat(e.target.value);
         if (validateNonNegative(value)) {
-            setAmountTo(value);
-            let newAmount = (value / currentRate).toFixed(2);
-            setAmountFrom(parseFloat(newAmount));
+            let newAmount = value / currentRate;
+            if (checkFunds(newAmount)) {
+                setAmountFrom(parseFloat(newAmount.toFixed(2)));
+                setAmountTo(value);
+            }
         }
     };
 
@@ -74,19 +104,34 @@ export const TransactionForm: FC = () => {
         const rate = targetRates.get(currency);
         setExchangeRate(rate || 0);
         setCurrentRate(rate || 0);
-        setAmountTo(parseFloat((amountFrom * (rate || 0)).toFixed(2)));
+
+        const targetAmount = amountFrom * (rate || 0);
+        setAmountTo(parseFloat(targetAmount.toFixed(2)));
     };
 
     const changeFromCurrency = (currency: string) => {
         setFromCurrency(currency);
+        setAccount(accounts.find((acc) => acc.currency === currency));
         const targetRates = rates.find(x => x.baseCurrency === currency)!.rates;
         const newCurrencyTo = targetRates.keys().next().value!;
         setToCurrency(newCurrencyTo);
         const rate = targetRates.get(newCurrencyTo);
         setExchangeRate(rate || 0);
         setCurrentRate(rate || 0);
+        let targetAmount = amountFrom * (rate || 0);
+        if (checkFunds(amountFrom)) {
+            setAmountTo(parseFloat(targetAmount.toFixed(2)));
+        } else {
+            const account = accounts.find((acc) => acc.currency === fromCurrency);
+            setAmountFrom(account!.balance);
+            targetAmount = account!.balance * (rate || 0);
+            setAmountTo(parseFloat(targetAmount.toFixed(2)));
+        }
+    };
 
-        setAmountTo(parseFloat((amountFrom * (rate || 0)).toFixed(2)));
+    const checkFunds = (amount: number) => {
+        let account = accounts.find((acc) => acc.currency === fromCurrency);
+        return account ? account.balance >= amount : false;
     };
 
     return (
@@ -96,7 +141,7 @@ export const TransactionForm: FC = () => {
                 <div className="text-2xl font-bold text-gray-800">{exchangeRate} {toCurrency}</div>
             </div>
             <form onSubmit={handleSubmit} className="self-center max-w-md w-6/12 p-4 border border-gray-300 rounded-lg bg-white shadow-md">
-                <div className="mb-4 flex flex-row">
+                <div className="flex flex-row">
                     <input
                         type="number"
                         step="any"
@@ -115,6 +160,9 @@ export const TransactionForm: FC = () => {
                             <option key={account.currency} value={account.currency}>{account.currency}</option>
                         ))}
                     </select>
+                </div>
+                <div className="flex mb-2">
+                    <p className="ml-2 text-sm text-slate-400">max: {account?.balance}</p>
                 </div>
                 <div className="mb-8">
                     <div className="mb-4 flex flex-row">

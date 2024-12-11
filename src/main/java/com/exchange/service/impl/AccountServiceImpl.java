@@ -77,4 +77,27 @@ public class AccountServiceImpl implements AccountService {
         result.setData(currenciesList);
         return result;
     }
+
+    @Override
+    public Result<Account> updateAccount(Account account) {
+        if (account == null) {
+            var result = new Result<Account>();
+            result.setError(ErrorCode.BAD_REQUEST);
+
+            return result;
+        }
+
+        var nowTime = Instant.now();
+        var existingEntity = accountRepository.findById(account.getId()).orElseThrow();
+        existingEntity.setUpdatedAt(nowTime);
+        existingEntity.setBalance(account.getBalance());
+
+        existingEntity = accountRepository.save(existingEntity);
+
+        var result = new Result<Account>();
+        account = mapper.map(existingEntity, Account.class);
+        result.setData(account);
+
+        return result;
+    }
 }

@@ -35,6 +35,24 @@ public class TransactionServiceImpl implements TransactionService {
         this.mapper = modelMapper;
     }
 
+    @Override
+    public Result<Transaction> getTransaction(long id) {
+        var entity = transactionRepository.findById(id);
+
+        if(entity.isEmpty()) {
+            var result = new Result<Transaction>();
+            result.setError(ErrorCode.TRANSACTION_NOT_FOUND);
+
+            return result;
+        }
+
+        var transaction = mapper.map(entity.get(), Transaction.class);
+        var result = new Result<Transaction>();
+        result.setData(transaction);
+
+        return result;
+    }
+
     public Result<Transaction> createTransaction(Transaction transaction) {
         if(transaction == null) {
             var result = new Result<Transaction>();
@@ -68,9 +86,10 @@ public class TransactionServiceImpl implements TransactionService {
             accountTo.setBalance(accountTo.getBalance().add(transaction.getAmountTo()));
         }
 
-        transactionRepository.save(entity);
+        entity = transactionRepository.save(entity);
         accountRepository.save(accountFrom);
         accountRepository.save(accountTo);
+        transaction = mapper.map(entity, Transaction.class);
 
         var result = new Result<Transaction>();
         result.setData(transaction);

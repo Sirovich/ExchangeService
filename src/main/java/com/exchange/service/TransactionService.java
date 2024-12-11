@@ -6,6 +6,7 @@ import com.exchange.model.Transaction;
 import java.util.List;
 
 public interface TransactionService {
+    Result<Transaction> getTransaction(long id);
     Result<Transaction> createTransaction(Transaction transaction);
     Result<List<Transaction>> getTransactions(String email);
     Result<Void> refundTransaction(long id);

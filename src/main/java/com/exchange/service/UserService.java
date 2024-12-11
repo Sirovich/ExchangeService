@@ -2,6 +2,7 @@ package com.exchange.service;
 
 import com.exchange.model.Result;
 import com.exchange.model.User;
+import com.exchange.model.UserType;
 
 public interface UserService {
     Result<User> createUser(User user);
