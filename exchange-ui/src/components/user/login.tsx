@@ -20,12 +20,13 @@ export const Login: FC = () => {
       let val: User = {
         id: userResponse.id,
         email: userResponse.email,
-        type: userResponse.type,
+        type: userResponse.type.toLocaleLowerCase(),
       };
       setUser(val)
       setError(false);
-      if(userResponse.type === 'admin') {
-        window.location.href = '/';
+      console.log(val);
+      if(val.type === 'admin') {
+        window.location.href = '/rates';
       } else {
         window.location.href = '/transaction';
       }

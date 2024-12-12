@@ -20,11 +20,16 @@ export const Registration: FC = () => {
       let val: User = {
         id: userResponse.id,
         email: userResponse.email,
-        type: userResponse.type,
+        type: userResponse.type.toLocaleLowerCase(),
       };
       setUser(val)
       setError(false);
-      window.location.href = '/transaction';
+      console.log(val);
+      if(val.type === 'admin') {
+        window.location.href = '/rates';
+      } else {
+        window.location.href = '/transaction';
+      }
     }
     else {
       setError(true);
